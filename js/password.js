@@ -223,19 +223,60 @@ async function handlePasswordSubmit() {
 }
 
 /**
+ * 从URL中提取查询参数
+ */
+function getUrlParams() {
+    const params = {};
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    for (const [key, value] of urlSearchParams.entries()) {
+        params[key] = value;
+    }
+    return params;
+}
+
+/**
+ * 尝试使用URL中的code参数进行自动密码验证
+ */
+async function tryAutoPasswordVerification() {
+    // 从URL中提取code参数
+    const params = getUrlParams();
+    const code = params.code;
+    
+    // 如果code参数存在且非空，尝试自动验证
+    if (code && code.trim()) {
+        try {
+            // 使用code作为密码进行验证
+            const isVerified = await verifyPassword(code.trim());
+            if (isVerified) {
+                // 验证成功，返回true
+                return true;
+            }
+        } catch (error) {
+            console.error('自动密码验证失败:', error);
+        }
+    }
+    // 验证失败或没有code参数，返回false
+    return false;
+}
+
+/**
  * 初始化密码验证系统
  */
-function initPasswordProtection() {
+async function initPasswordProtection() {
     // 如果需要强制设置密码，显示警告弹窗
     if (isPasswordRequired()) {
         showPasswordModal();
         return;
     }
     
-    // 如果设置了密码但用户未验证，显示密码输入框
+    // 如果设置了密码但用户未验证
     if (isPasswordProtected() && !isPasswordVerified()) {
-        showPasswordModal();
-        return;
+        // 尝试使用URL中的code参数进行自动验证
+        const autoVerified = await tryAutoPasswordVerification();
+        // 如果自动验证成功，则不显示密码弹窗
+        if (!autoVerified) {
+            showPasswordModal();
+        }
     }
 }
 
