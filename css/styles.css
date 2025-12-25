@@ -1027,3 +1027,10 @@ body {
         font-size: 0.8rem;
     }
 }
+
+/* 移动端全局字体缩小2像素 */
+@media screen and (max-width: 768px) {
+    html {
+        font-size: calc(100% - 2px);
+    }
+}
